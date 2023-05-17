@@ -10,32 +10,37 @@ def on_period_change(selected_period):
     # print(f"Выбранный период: {selected_period}")
 
 
-def calculate_average_disadvantage(heroes_list):
-    # Получить контрпики для каждого героя
+def calculate_average_values(heroes_list):
     all_counters = []
     for hero in heroes_list:
         hero_counters = fetch_counters(hero, period)
         all_counters.extend(hero_counters)
 
-    # Подсчитать сумму disadvantage для каждого героя
-    disadvantage_sums = {}
+    sums = {}
     for counter in all_counters:
         hero_name = counter["hero_name"]
         disadvantage = float(counter["disadvantage"].strip('%'))
-        if hero_name in disadvantage_sums:
-            disadvantage_sums[hero_name] += disadvantage
+        win_rate = float(counter["win_rate"].strip('%'))
+        matches_played = int(counter["Matches_Played"].replace(',', ''))
+
+        if hero_name in sums:
+            sums[hero_name]['disadvantage'] += disadvantage
+            sums[hero_name]['win_rate'] += win_rate
+            sums[hero_name]['matches_played'] += matches_played
         else:
-            disadvantage_sums[hero_name] = disadvantage
+            sums[hero_name] = {
+                'disadvantage': disadvantage,
+                'win_rate': win_rate,
+                'matches_played': matches_played
+            }
 
-    # Подсчитать сумму disadvantage для каждого героя
-    average_disadvantages = {hero: disadvantage_sum for hero, disadvantage_sum in disadvantage_sums.items()}
+    averages = {hero: {key: value / len(heroes_list) for key, value in values.items()} for hero, values in sums.items()}
 
-    # Отсортировать по убыванию disadvantage и исключить введенных героев
-    sorted_average_disadvantages = sorted(average_disadvantages.items(), key=lambda x: x[1], reverse=True)
-    sorted_average_disadvantages = [(hero, disadvantage) for hero, disadvantage in sorted_average_disadvantages if
-                                    hero.lower().replace(' ', '-') not in heroes_list]
+    sorted_averages = sorted(averages.items(), key=lambda x: x[1]['disadvantage'], reverse=True)
+    sorted_averages = [(hero, values) for hero, values in sorted_averages if
+                       hero.lower().replace(' ', '-') not in heroes_list]
 
-    return sorted_average_disadvantages
+    return sorted_averages
 
 
 def on_entry_hero_changed(event, hero_entry, autocomplete_listbox):
@@ -81,34 +86,40 @@ def create_hero_entry_row(row, column):
 
 
 def show_counters_team_1():
-    input_heroes = [entry.get().lower().replace(' ', '-') for entry in team1_hero_entries if entry.get().strip()]
+  input_heroes = [entry.get().lower().replace(' ', '-') for entry in team1_hero_entries if entry.get().strip()]
 
-    if not input_heroes:
-        result_text.delete(1.0, "end")
-        result_text.insert("end", "Нет выбранных героев.")
-        return
-
-    sorted_average_disadvantages = calculate_average_disadvantage(input_heroes)
-
+  if not input_heroes:
     result_text.delete(1.0, "end")
-    for hero_name, disadvantage in sorted_average_disadvantages:
-        result_text.insert("end", f"{hero_name.replace('-', ' ').title()} {disadvantage:.2f}%\n")
+    result_text.insert("end", "Нет выбранных героев.")
     return
+
+  sorted_average_values = calculate_average_values(input_heroes)
+
+  result_text.delete(1.0, "end")
+  for hero_name, values in sorted_average_values:
+    result_text.insert(
+      "end",
+      f"{hero_name.replace('-', ' ').title()} => Disadvantage: {values['disadvantage']:.2f}% Win Rate: {values['win_rate']:.2f}% Matches Played: {values['matches_played']}\n"
+    )
+
 
 
 def show_counters_team_2():
-    input_heroes2 = [entry.get().lower().replace(' ', '-') for entry in team2_hero_entries if entry.get().strip()]
+  input_heroes = [entry.get().lower().replace(' ', '-') for entry in team2_hero_entries if entry.get().strip()]
 
-    if not input_heroes2:
-        result_text.delete(1.0, "end")
-        result_text.insert("end", "Нет выбранных героев.")
-        return
-
-    sorted_average_disadvantages2 = calculate_average_disadvantage(input_heroes2)
-
+  if not input_heroes:
     result_text.delete(1.0, "end")
-    for hero_name, disadvantage in sorted_average_disadvantages2:
-        result_text.insert("end", f"{hero_name.replace('-', ' ').title()} {disadvantage:.2f}%\n")
+    result_text.insert("end", "Нет выбранных героев.")
+    return
+
+  sorted_average_values = calculate_average_values(input_heroes)
+
+  result_text.delete(1.0, "end")
+  for hero_name, values in sorted_average_values:
+    result_text.insert(
+      "end",
+      f"{hero_name.replace('-', ' ').title()} => Disadvantage: {values['disadvantage']:.2f}% Win Rate: {values['win_rate']:.2f}% Matches Played: {values['matches_played']}\n"
+    )
 
 
 def normalize_hero_name(hero_name):
