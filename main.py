@@ -1,8 +1,10 @@
 from tkinter import *
 from tkinter import ttk
-from config import all_hero_names, fetch_counters, period
+
+from config import all_hero_names, fetch_counters
 
 hero_names = all_hero_names
+
 
 def on_period_change(selected_period):
     global period
@@ -34,7 +36,13 @@ def calculate_average_values(heroes_list):
                 'matches_played': matches_played
             }
 
-    averages = {hero: {key: value / len(heroes_list) for key, value in values.items()} for hero, values in sums.items()}
+    averages = {}
+    for hero, values in sums.items():
+        averages[hero] = {
+            'disadvantage': values['disadvantage'],
+            'win_rate': values['win_rate'] / len(heroes_list),
+            'matches_played': values['matches_played']
+        }
 
     sorted_averages = sorted(averages.items(), key=lambda x: x[1]['disadvantage'], reverse=True)
     sorted_averages = [(hero, values) for hero, values in sorted_averages if
@@ -86,40 +94,39 @@ def create_hero_entry_row(row, column):
 
 
 def show_counters_team_1():
-  input_heroes = [entry.get().lower().replace(' ', '-') for entry in team1_hero_entries if entry.get().strip()]
+    input_heroes = [entry.get().lower().replace(' ', '-') for entry in team1_hero_entries if entry.get().strip()]
 
-  if not input_heroes:
+    if not input_heroes:
+        result_text.delete(1.0, "end")
+        result_text.insert("end", "Нет выбранных героев.")
+        return
+
+    sorted_average_values = calculate_average_values(input_heroes)
+
     result_text.delete(1.0, "end")
-    result_text.insert("end", "Нет выбранных героев.")
-    return
-
-  sorted_average_values = calculate_average_values(input_heroes)
-
-  result_text.delete(1.0, "end")
-  for hero_name, values in sorted_average_values:
-    result_text.insert(
-      "end",
-      f"{hero_name.replace('-', ' ').title()} => Disadvantage: {values['disadvantage']:.2f}% Win Rate: {values['win_rate']:.2f}% Matches Played: {values['matches_played']}\n"
-    )
-
+    for hero_name, values in sorted_average_values:
+        result_text.insert(
+            "end",
+            f"{hero_name.replace('-', ' ').title()} => Disadvantage: {values['disadvantage']:.2f}% Win Rate: {values['win_rate']:.2f}% Matches Played: {values['matches_played']}\n"
+        )
 
 
 def show_counters_team_2():
-  input_heroes = [entry.get().lower().replace(' ', '-') for entry in team2_hero_entries if entry.get().strip()]
+    input_heroes = [entry.get().lower().replace(' ', '-') for entry in team2_hero_entries if entry.get().strip()]
 
-  if not input_heroes:
+    if not input_heroes:
+        result_text.delete(1.0, "end")
+        result_text.insert("end", "Нет выбранных героев.")
+        return
+
+    sorted_average_values = calculate_average_values(input_heroes)
+
     result_text.delete(1.0, "end")
-    result_text.insert("end", "Нет выбранных героев.")
-    return
-
-  sorted_average_values = calculate_average_values(input_heroes)
-
-  result_text.delete(1.0, "end")
-  for hero_name, values in sorted_average_values:
-    result_text.insert(
-      "end",
-      f"{hero_name.replace('-', ' ').title()} => Disadvantage: {values['disadvantage']:.2f}% Win Rate: {values['win_rate']:.2f}% Matches Played: {values['matches_played']}\n"
-    )
+    for hero_name, values in sorted_average_values:
+        result_text.insert(
+            "end",
+            f"{hero_name.replace('-', ' ').title()} => Disadvantage: {values['disadvantage']:.2f}% Win Rate: {values['win_rate']:.2f}% Matches Played: {values['matches_played']}\n"
+        )
 
 
 def normalize_hero_name(hero_name):
@@ -132,8 +139,8 @@ def create_comparison_table(team1_heroes, team2_heroes):
     for hero1 in team1_heroes:
         hero_row = []
         for hero2 in team2_heroes:
-            hero1_counters = fetch_counters(hero1,period)
-            hero2_counters = fetch_counters(hero2,period)
+            hero1_counters = fetch_counters(hero1, period)
+            hero2_counters = fetch_counters(hero2, period)
 
             hero1_name = normalize_hero_name(hero1)
             hero2_name = normalize_hero_name(hero2)
