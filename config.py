@@ -42,15 +42,16 @@ def fetch_counters(hero_name, period):
             hero_name = cells[1].text.strip()
             disadvantage = cells[2].text.strip()
             win_rate = cells[3].text.strip()
+            Matches_Played = cells[4].text.strip()
 
             counter_data.append({
             "hero_name": hero_name,
             "disadvantage": disadvantage,
             "win_rate": win_rate,
+            "Matches_Played" : Matches_Played,
             })
-        # print(counter_data)
+        print(counter_data)
         return counter_data
     else:
         print(f"Ошибка при получении данных: {response.status_code}")
         return []
-
