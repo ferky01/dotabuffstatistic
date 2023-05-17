@@ -24,10 +24,10 @@ all_hero_names = [
 ]
 
 def fetch_counters(hero_name, period):
-    url = f"https://www.dotabuff.com/heroes/{hero_name}/counters?date={period}" # week, month, 3month
+    url = f"https://www.dotabuff.com/heroes/{hero_name}/counters?date={period}"
 
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
     }
 
     response = requests.get(url, headers=headers)
@@ -41,14 +41,16 @@ def fetch_counters(hero_name, period):
             cells = row.find_all("td")
             hero_name = cells[1].text.strip()
             disadvantage = cells[2].text.strip()
-            win_rate = cells[3].text.strip
+            win_rate = cells[3].text.strip()
 
             counter_data.append({
-                "hero_name": hero_name,
-                "disadvantage": disadvantage,
-                "win_rate": win_rate,
+            "hero_name": hero_name,
+            "disadvantage": disadvantage,
+            "win_rate": win_rate,
             })
+        # print(counter_data)
         return counter_data
     else:
         print(f"Ошибка при получении данных: {response.status_code}")
         return []
+
