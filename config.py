@@ -1,9 +1,8 @@
 import requests
-
 from bs4 import BeautifulSoup
 
 
-period = ['week', 'month', '3month', 'patch_7.33']
+period = ['week', 'month', '3month','6month', 'year' , 'patch_7.33']
 
 all_hero_names = [
     "abaddon", "alchemist", "ancient-apparition", "anti-mage", "arc-warden", "axe", "bane", "batrider", "beastmaster",
@@ -23,8 +22,12 @@ all_hero_names = [
     "warlock", "weaver", "windranger", "winter-wyvern", "witch-doctor", "wraith-king", "zeus"
 ]
 
+
+def normalize_hero_name(hero_name):
+    return hero_name.lower().replace('-', ' ').replace("'", "").replace(".", "")
 def fetch_counters(hero_name, period):
-    url = f"https://www.dotabuff.com/heroes/{hero_name}/counters?date={period}"
+    normalized_hero_name = normalize_hero_name(hero_name).replace(' ', '-')
+    url = f"https://www.dotabuff.com/heroes/{normalized_hero_name}/counters?date={period}"
 
     headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
