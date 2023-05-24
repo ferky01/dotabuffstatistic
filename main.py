@@ -95,7 +95,8 @@ def create_hero_entry_row(row, column):
 
 
 def sort(tree, col, reverse):
-    l = [(float(tree.set(k, col).replace('%', '')) if col != 'Hero' else tree.set(k, col), k) for k in tree.get_children("")]
+    l = [(float(tree.set(k, col).replace('%', '')) if col != 'Hero' else tree.set(k, col), k) for k in
+         tree.get_children("")]
     l.sort(reverse=reverse)
 
     for index, (_, k) in enumerate(l):
@@ -104,14 +105,8 @@ def sort(tree, col, reverse):
     tree.heading(col, command=lambda: sort(tree, col, not reverse))
 
 
-
 def show_counters_team_1():
     input_heroes = [entry.get().lower().replace(' ', '-') for entry in team1_hero_entries if entry.get().strip()]
-
-    if not input_heroes:
-        result_text.delete(1.0, "end")
-        result_text.insert("end", "Нет выбранных героев.")
-        return
 
     sorted_average_values = calculate_average_values(input_heroes)
 
@@ -124,19 +119,14 @@ def show_counters_team_1():
 
     for hero_name, values in sorted_average_values:
         table.insert('', 'end', values=(
-        hero_name.replace('-', ' ').title(), f"{values['disadvantage']:.2f}%", f"{values['win_rate']:.2f}%",
-        values['matches_played']))
+            hero_name.replace('-', ' ').title(), f"{values['disadvantage']:.2f}%", f"{values['win_rate']:.2f}%",
+            values['matches_played']))
 
     table.grid(row=10, column=0, columnspan=4)
 
 
 def show_counters_team_2():
     input_heroes = [entry.get().lower().replace(' ', '-') for entry in team2_hero_entries if entry.get().strip()]
-
-    if not input_heroes:
-        result_text.delete(1.0, "end")
-        result_text.insert("end", "Нет выбранных героев.")
-        return
 
     sorted_average_values = calculate_average_values(input_heroes)
 
@@ -148,8 +138,8 @@ def show_counters_team_2():
 
     for hero_name, values in sorted_average_values:
         table.insert('', 'end', values=(
-        hero_name.replace('-', ' ').title(), f"{values['disadvantage']:.2f}%", f"{values['win_rate']:.2f}%",
-        values['matches_played']))
+            hero_name.replace('-', ' ').title(), f"{values['disadvantage']:.2f}%", f"{values['win_rate']:.2f}%",
+            values['matches_played']))
 
     table.grid(row=10, column=0, columnspan=4)
 
@@ -158,7 +148,8 @@ def create_comparison_table(team1_heroes, team2_heroes):
     comparison_table = []
 
     for hero1 in team1_heroes:
-        hero_row = []
+        hero_row = [hero1.replace('-', ' ').title()]  # Add hero1 name as the first cell in the row
+        row_sum = 0  # Initialize the sum for the row
         for hero2 in team2_heroes:
             hero1_counters = fetch_counters(hero1, period)
             hero2_counters = fetch_counters(hero2, period)
@@ -171,9 +162,11 @@ def create_comparison_table(team1_heroes, team2_heroes):
             hero2_disadvantage = next((float(counter['disadvantage'].strip('%')) for counter in hero2_counters if
                                        normalize_hero_name(counter['hero_name']) == hero1_name), 0)
 
-            comparison_value = (hero1_disadvantage - hero2_disadvantage) / 2
-            hero_row.append(comparison_value)
+            comparison_value = round(((hero1_disadvantage - hero2_disadvantage) / 2), 2)
+            row_sum += comparison_value  # Add comparison value to the row sum
+            hero_row.append(comparison_value)  # Add comparison value to the row
 
+        hero_row.append(round(row_sum, 2))  # Add the rounded row sum to the end of the row
         comparison_table.append(hero_row)
 
     return comparison_table
@@ -183,36 +176,32 @@ def show_comparison_table():
     team1_heroes = [entry.get().lower().replace(' ', '-') for entry in team1_hero_entries if entry.get().strip()]
     team2_heroes = [entry.get().lower().replace(' ', '-') for entry in team2_hero_entries if entry.get().strip()]
 
-    if not team1_heroes or not team2_heroes:
-        result_text.delete(1.0, "end")
-        result_text.insert("end", "Выберите героев для обеих команд.")
-        return
-
-    # Увеличьте ширину колонки с названиями героев до 25 символов
-    column_width = 20
-
     comparison_table = create_comparison_table(team1_heroes, team2_heroes)
 
-    result_text.delete(1.0, "end")
+    # Create a Treeview widget with an extra column for "Team 1" and "Total Team 1"
+    tree = ttk.Treeview(root, columns=["Team 1"] + team2_heroes + ["Total Team 1"], show="headings")
 
-    # Добавьте строку с именами героев команды 2
-    team2_hero_names = ' '.join([f"{hero.replace('-', ' ').title():<{column_width}}" for hero in team2_heroes])
-    result_text.insert("end", f"{' ' * column_width}  {team2_hero_names}\n")
+    # Set column headers
+    tree.heading("Team 1", text="Team 1")
+    for hero in team2_heroes:
+        tree.heading(hero, text=hero.replace('-', ' ').title())
+    tree.heading("Total Team 1", text="Total Team 1")
 
-    for hero1, row in zip(team1_heroes, comparison_table):
-        row_text = '  '.join([f"{value:+.2f}".ljust(column_width) for value in row])
-        row_average = sum(row)
-        # Вставьте название героя команды 1 перед значениями сравнения с учетом новой ширины колонки
-        result_text.insert("end",
-                           f"{hero1.replace('-', ' ').title():<{column_width}}  {row_text}  {row_average:+.2f}\n")
+    # Insert rows into the Treeview and calculate the sum of the "Total Team 1" column
+    total_sum = 0
+    for row in comparison_table:
+        total_sum += row[-1]  # Add the last element of the row (the row sum) to the total sum
+        tree.insert("", END, values=row)
 
-    # Расчет суммы для каждого столбца
-    column_sums = [sum(column) for column in zip(*comparison_table)]
-    column_averages_text = '  '.join([f"{value:+.2f}".ljust(column_width) for value in column_sums])
-    # Расчет суммы для нижней строки
-    bottom_row_sum = sum(column_sums)
-    # Добавьте сумму нижней строки в вывод
-    result_text.insert("end", f"{' ' * column_width}  {column_averages_text}  {bottom_row_sum:+.2f}\n")
+    # Calculate the sum for each column corresponding to a hero from team 2 and round it to two decimal places
+    column_sums = [round(sum(row[i] for row in comparison_table), 2) for i in range(1, len(team2_heroes) + 1)]
+
+    # Insert the rounded total sum as the last entry in the "Total Team 1" column and the rounded column sums for each hero from team 2
+    total_row = ["Total team 2"] + column_sums + [round(total_sum, 2)]
+    tree.insert("", END, values=total_row)
+
+    # Use grid to add the Treeview to the parent widget
+    tree.grid(row=10, column=0, columnspan=4, sticky='nsew')
 
 
 root = Tk()
@@ -246,13 +235,6 @@ calculate_button.grid(row=0, column=0, padx=10, pady=10, columnspan=3)
 
 calculate_button = ttk.Button(root, text="Показать контрпики команды 2", command=show_counters_team_2)
 calculate_button.grid(row=0, column=2, padx=10, pady=10, columnspan=5)
-
-result_text = Text(root, wrap="word", width=140, height=20)
-result_text.grid(row=3, column=0, padx=10, pady=10, columnspan=4)
-
-result_scrollbar = Scrollbar(root, command=result_text.yview)
-result_scrollbar.grid(row=3, column=4, sticky="nsew")
-result_text["yscrollcommand"] = result_scrollbar.set
 
 period_options = [' ', 'week', 'month', '3month', '6month', 'year', 'patch_7.33']
 period_var = StringVar(root)
