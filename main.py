@@ -1,9 +1,10 @@
 from tkinter import *
 from tkinter import ttk
 
-from config import all_hero_names, fetch_counters, period
+from config import all_hero_names, fetch_counters, period, normalize_hero_name
 
 hero_names = all_hero_names
+period = period
 
 
 def on_period_change(selected_period):
@@ -93,6 +94,17 @@ def create_hero_entry_row(row, column):
     return hero_entry
 
 
+def sort(tree, col, reverse):
+    l = [(float(tree.set(k, col).replace('%', '')) if col != 'Hero' else tree.set(k, col), k) for k in tree.get_children("")]
+    l.sort(reverse=reverse)
+
+    for index, (_, k) in enumerate(l):
+        tree.move(k, '', index)
+
+    tree.heading(col, command=lambda: sort(tree, col, not reverse))
+
+
+
 def show_counters_team_1():
     input_heroes = [entry.get().lower().replace(' ', '-') for entry in team1_hero_entries if entry.get().strip()]
 
@@ -105,16 +117,17 @@ def show_counters_team_1():
 
     # Создание таблицы
     table = ttk.Treeview(root, columns=('Hero', 'Disadvantage', 'Win Rate', 'Matches Played'), show='headings')
-    table.heading('Hero', text='Hero')
-    table.heading('Disadvantage', text='Disadvantage')
-    table.heading('Win Rate', text='Win Rate')
-    table.heading('Matches Played', text='Matches Played')
+    table.heading('Hero', text='Hero', command=lambda: sort(table, 'Hero', False))
+    table.heading('Disadvantage', text='Disadvantage', command=lambda: sort(table, 'Disadvantage', False))
+    table.heading('Win Rate', text='Win Rate', command=lambda: sort(table, 'Win Rate', False))
+    table.heading('Matches Played', text='Matches Played', command=lambda: sort(table, 'Matches Played', False))
 
     for hero_name, values in sorted_average_values:
-        table.insert('', 'end', values=(hero_name.replace('-', ' ').title(), f"{values['disadvantage']:.2f}%", f"{values['win_rate']:.2f}%", values['matches_played']))
+        table.insert('', 'end', values=(
+        hero_name.replace('-', ' ').title(), f"{values['disadvantage']:.2f}%", f"{values['win_rate']:.2f}%",
+        values['matches_played']))
 
-    # Размещение таблицы в интерфейсе
-    table.grid(row=10, column=0, columnspan=4)  # Измените параметры row и column в соответствии с вашим интерфейсом
+    table.grid(row=10, column=0, columnspan=4)
 
 
 def show_counters_team_2():
@@ -127,21 +140,18 @@ def show_counters_team_2():
 
     sorted_average_values = calculate_average_values(input_heroes)
 
-    # Создание таблицы
     table = ttk.Treeview(root, columns=('Hero', 'Disadvantage', 'Win Rate', 'Matches Played'), show='headings')
-    table.heading('Hero', text='Hero')
-    table.heading('Disadvantage', text='Disadvantage')
-    table.heading('Win Rate', text='Win Rate')
-    table.heading('Matches Played', text='Matches Played')
+    table.heading('Hero', text='Hero', command=lambda: sort(table, 'Hero', False))
+    table.heading('Disadvantage', text='Disadvantage', command=lambda: sort(table, 'Disadvantage', False))
+    table.heading('Win Rate', text='Win Rate', command=lambda: sort(table, 'Win Rate', False))
+    table.heading('Matches Played', text='Matches Played', command=lambda: sort(table, 'Matches Played', False))
 
     for hero_name, values in sorted_average_values:
-        table.insert('', 'end', values=(hero_name.replace('-', ' ').title(), f"{values['disadvantage']:.2f}%", f"{values['win_rate']:.2f}%", values['matches_played']))
+        table.insert('', 'end', values=(
+        hero_name.replace('-', ' ').title(), f"{values['disadvantage']:.2f}%", f"{values['win_rate']:.2f}%",
+        values['matches_played']))
 
-    # Размещение таблицы в интерфейсе
-    table.grid(row=10, column=0, columnspan=4)  # Измените параметры row и column в соответствии с вашим интерфейсом
-
-def normalize_hero_name(hero_name):
-    return hero_name.lower().replace('-', ' ').replace("'", "").replace(".", "")
+    table.grid(row=10, column=0, columnspan=4)
 
 
 def create_comparison_table(team1_heroes, team2_heroes):
@@ -244,7 +254,7 @@ result_scrollbar = Scrollbar(root, command=result_text.yview)
 result_scrollbar.grid(row=3, column=4, sticky="nsew")
 result_text["yscrollcommand"] = result_scrollbar.set
 
-period_options = [' ', 'week', 'month', '3month','6month', 'year' , 'patch_7.33']
+period_options = [' ', 'week', 'month', '3month', '6month', 'year', 'patch_7.33']
 period_var = StringVar(root)
 period_var.set(period_options[0])  # установите значение по умолчанию
 period_dropdown = ttk.OptionMenu(root, period_var, *period_options, command=on_period_change)
