@@ -122,7 +122,7 @@ def show_counters_team_1():
             hero_name.replace('-', ' ').title(), f"{values['disadvantage']:.2f}%", f"{values['win_rate']:.2f}%",
             values['matches_played']))
 
-    table.grid(row=10, column=0, columnspan=4)
+    table.grid(row=3, column=0, columnspan=5)
 
 
 def show_counters_team_2():
@@ -141,7 +141,7 @@ def show_counters_team_2():
             hero_name.replace('-', ' ').title(), f"{values['disadvantage']:.2f}%", f"{values['win_rate']:.2f}%",
             values['matches_played']))
 
-    table.grid(row=10, column=0, columnspan=4)
+    table.grid(row=3, column=0, columnspan=5)
 
 
 def create_comparison_table(team1_heroes, team2_heroes):
@@ -181,11 +181,14 @@ def show_comparison_table():
     # Create a Treeview widget with an extra column for "Team 1" and "Total Team 1"
     tree = ttk.Treeview(root, columns=["Team 1"] + team2_heroes + ["Total Team 1"], show="headings")
 
-    # Set column headers
+    # Set column headers and center the column values
     tree.heading("Team 1", text="Team 1")
+    tree.column("Team 1", anchor="center")
     for hero in team2_heroes:
         tree.heading(hero, text=hero.replace('-', ' ').title())
+        tree.column(hero, anchor="center")
     tree.heading("Total Team 1", text="Total Team 1")
+    tree.column("Total Team 1", anchor="center")
 
     # Insert rows into the Treeview and calculate the sum of the "Total Team 1" column
     total_sum = 0
@@ -197,11 +200,11 @@ def show_comparison_table():
     column_sums = [round(sum(row[i] for row in comparison_table), 2) for i in range(1, len(team2_heroes) + 1)]
 
     # Insert the rounded total sum as the last entry in the "Total Team 1" column and the rounded column sums for each hero from team 2
-    total_row = ["Total team 2"] + column_sums + [round(total_sum, 2)]
+    total_row = ["Total"] + column_sums + [round(total_sum, 2)]
     tree.insert("", END, values=total_row)
 
     # Use grid to add the Treeview to the parent widget
-    tree.grid(row=10, column=0, columnspan=4, sticky='nsew')
+    tree.grid(row=3, column=0, columnspan=5, sticky='nsew')
 
 
 root = Tk()
@@ -231,7 +234,7 @@ compare_button.grid(row=4, column=0, padx=10, pady=10, columnspan=5)
 
 # Изменить номер строки для кнопки "Показать контрпики"
 calculate_button = ttk.Button(root, text="Показать контрпики команды 1", command=show_counters_team_1)
-calculate_button.grid(row=0, column=0, padx=10, pady=10, columnspan=3)
+calculate_button.grid(row=0, column=0, padx=10, pady=10, columnspan=4)
 
 calculate_button = ttk.Button(root, text="Показать контрпики команды 2", command=show_counters_team_2)
 calculate_button.grid(row=0, column=2, padx=10, pady=10, columnspan=5)
