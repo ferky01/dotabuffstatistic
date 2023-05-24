@@ -183,7 +183,6 @@ def show_comparison_table():
 
     # Set column headers and center the column values
     tree.heading("Team 1", text="Team 1")
-    tree.column("Team 1", anchor="center")
     for hero in team2_heroes:
         tree.heading(hero, text=hero.replace('-', ' ').title())
         tree.column(hero, anchor="center")
