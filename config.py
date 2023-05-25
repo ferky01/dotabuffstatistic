@@ -1,6 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-
+from functools import lru_cache
 
 period = ['week', 'month', '3month','6month', 'year' , 'patch_7.33']
 
@@ -25,6 +25,9 @@ all_hero_names = [
 
 def normalize_hero_name(hero_name):
     return hero_name.lower().replace('-', ' ').replace("'", "").replace(".", "")
+
+
+@lru_cache(maxsize=None)
 def fetch_counters(hero_name, period):
     normalized_hero_name = normalize_hero_name(hero_name).replace(' ', '-')
     url = f"https://www.dotabuff.com/heroes/{normalized_hero_name}/counters?date={period}"
@@ -48,7 +51,7 @@ def fetch_counters(hero_name, period):
             Matches_Played = cells[4].text.strip()
 
             counter_data.append({
-            "hero_name": hero_name,
+            "hero_name": normalize_hero_name(hero_name),
             "disadvantage": disadvantage,
             "win_rate": win_rate,
             "Matches_Played" : Matches_Played,
