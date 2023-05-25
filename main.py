@@ -105,8 +105,8 @@ def sort(tree, col, reverse):
     tree.heading(col, command=lambda: sort(tree, col, not reverse))
 
 
-def show_counters_team_1():
-    input_heroes = [entry.get().lower().replace(' ', '-') for entry in team1_hero_entries if entry.get().strip()]
+def show_counters(hero_entries):
+    input_heroes = [entry.get().lower().replace(' ', '-') for entry in hero_entries if entry.get().strip()]
 
     sorted_average_values = calculate_average_values(input_heroes)
 
@@ -124,24 +124,6 @@ def show_counters_team_1():
 
     table.grid(row=3, column=0, columnspan=5)
 
-
-def show_counters_team_2():
-    input_heroes = [entry.get().lower().replace(' ', '-') for entry in team2_hero_entries if entry.get().strip()]
-
-    sorted_average_values = calculate_average_values(input_heroes)
-
-    table = ttk.Treeview(root, columns=('Hero', 'Disadvantage', 'Win Rate', 'Matches Played'), show='headings')
-    table.heading('Hero', text='Hero', command=lambda: sort(table, 'Hero', False))
-    table.heading('Disadvantage', text='Disadvantage', command=lambda: sort(table, 'Disadvantage', False))
-    table.heading('Win Rate', text='Win Rate', command=lambda: sort(table, 'Win Rate', False))
-    table.heading('Matches Played', text='Matches Played', command=lambda: sort(table, 'Matches Played', False))
-
-    for hero_name, values in sorted_average_values:
-        table.insert('', 'end', values=(
-            hero_name.replace('-', ' ').title(), f"{values['disadvantage']:.2f}%", f"{values['win_rate']:.2f}%",
-            values['matches_played']))
-
-    table.grid(row=3, column=0, columnspan=5)
 
 
 def create_comparison_table(team1_heroes, team2_heroes):
@@ -232,11 +214,12 @@ compare_button = ttk.Button(root, text="Сравнить команды", comman
 compare_button.grid(row=4, column=0, padx=10, pady=10, columnspan=5)
 
 # Изменить номер строки для кнопки "Показать контрпики"
-calculate_button = ttk.Button(root, text="Показать контрпики команды 1", command=show_counters_team_1)
+calculate_button = ttk.Button(root, text="Показать контрпики команды 1", command=lambda: show_counters(team1_hero_entries))
 calculate_button.grid(row=0, column=0, padx=10, pady=10, columnspan=4)
 
-calculate_button = ttk.Button(root, text="Показать контрпики команды 2", command=show_counters_team_2)
+calculate_button = ttk.Button(root, text="Показать контрпики команды 2", command=lambda: show_counters(team2_hero_entries))
 calculate_button.grid(row=0, column=2, padx=10, pady=10, columnspan=5)
+
 
 period_options = [' ', 'week', 'month', '3month', '6month', 'year', 'patch_7.33']
 period_var = StringVar(root)
