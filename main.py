@@ -125,7 +125,6 @@ def show_counters(hero_entries):
     table.grid(row=3, column=0, columnspan=5)
 
 
-
 def create_comparison_table(team1_heroes, team2_heroes):
     comparison_table = []
 
@@ -168,7 +167,7 @@ def show_comparison_table():
     for hero in team2_heroes:
         tree.heading(hero, text=hero.replace('-', ' ').title())
         tree.column(hero, anchor="center")
-    tree.heading("Total Team 1", text="Total Team 1")
+    tree.heading("Total Team 1", text="Total team 1")
     tree.column("Total Team 1", anchor="center")
 
     # Insert rows into the Treeview and calculate the sum of the "Total Team 1" column
@@ -180,8 +179,8 @@ def show_comparison_table():
     # Calculate the sum for each column corresponding to a hero from team 2 and round it to two decimal places
     column_sums = [round(sum(row[i] for row in comparison_table), 2) for i in range(1, len(team2_heroes) + 1)]
 
-    # Insert the rounded total sum as the last entry in the "Total Team 1" column and the rounded column sums for each hero from team 2
-    total_row = ["Total"] + column_sums + [round(total_sum, 2)]
+    # Insert the rounded total sum as the last entry in the "Total Team 1" column and the rounded column sums for
+    total_row = ["Total team 2"] + column_sums + [round(total_sum, 2)]
     tree.insert("", END, values=total_row)
 
     # Use grid to add the Treeview to the parent widget
@@ -210,16 +209,17 @@ for i in range(5):
     hero_entry = create_hero_entry_row(5, i)
     team2_hero_entries.append(hero_entry)
 
-compare_button = ttk.Button(root, text="Сравнить команды", command=show_comparison_table)
+compare_button = ttk.Button(root, text="Сравнить героев", command=show_comparison_table)
 compare_button.grid(row=4, column=0, padx=10, pady=10, columnspan=5)
 
 # Изменить номер строки для кнопки "Показать контрпики"
-calculate_button = ttk.Button(root, text="Показать контрпики команды 1", command=lambda: show_counters(team1_hero_entries))
+calculate_button = ttk.Button(root, text="Показать контрпики команды 1",
+                              command=lambda: show_counters(team1_hero_entries))
 calculate_button.grid(row=0, column=0, padx=10, pady=10, columnspan=4)
 
-calculate_button = ttk.Button(root, text="Показать контрпики команды 2", command=lambda: show_counters(team2_hero_entries))
+calculate_button = ttk.Button(root, text="Показать контрпики команды 2",
+                              command=lambda: show_counters(team2_hero_entries))
 calculate_button.grid(row=0, column=2, padx=10, pady=10, columnspan=5)
-
 
 period_options = [' ', 'week', 'month', '3month', '6month', 'year', 'patch_7.33']
 period_var = StringVar(root)
