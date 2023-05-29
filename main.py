@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import ttk
 
+from ConfigStratzApi import hero_id
+from StratzAPI import fetch_synergy_data
 from config import all_hero_names, fetch_counters, period, normalize_hero_name
 
 hero_names = all_hero_names
@@ -125,6 +127,70 @@ def show_counters(hero_entries):
     table.grid(row=3, column=0, columnspan=5)
 
 
+def create_synergy_table(team_heroes):
+    synergy_table = []
+
+    for i in range(len(team_heroes)):
+        hero1 = team_heroes[i]
+        hero1_synergy_data = fetch_synergy_data(hero1)
+        hero1_name = normalize_hero_name(hero1)
+
+        total_synergy = 0
+        count = 0
+
+        for j in range(len(team_heroes)):
+            if i != j:
+                hero2 = team_heroes[j]
+                hero2_name = normalize_hero_name(hero2)
+                hero2_id = hero_id[hero2]
+
+                for disadvantage_info in hero1_synergy_data['heroVsHeroMatchup']['disadvantage']:
+                    for synergy_info in disadvantage_info['with']:
+                        if synergy_info['heroId2'] == hero2_id:
+                            hero1_synergy = float(synergy_info['synergy'])
+                            total_synergy += hero1_synergy
+                            count += 1
+                            break
+
+        average_synergy = round(total_synergy, 2) if count > 0 else 0
+        synergy_table.append([hero1_name, average_synergy])
+
+    # Считаем общую синергию
+    total_synergy = sum([row[1] for row in synergy_table])
+    synergy_table.append(["Total synergy", total_synergy])
+
+    return synergy_table
+
+
+def show_synergy_table():
+    team1_heroes = [entry.get().replace('-', ' ') for entry in team1_hero_entries if entry.get().strip()]
+    team2_heroes = [entry.get().replace('-', ' ') for entry in team2_hero_entries if entry.get().strip()]
+
+    synergy_table_team1 = create_synergy_table(team1_heroes)
+    synergy_table_team2 = create_synergy_table(team2_heroes)
+
+    # Создание таблицы для команды 1
+    table1 = ttk.Treeview(root, columns=('Hero', 'Average Synergy'), show='headings')
+    table1.heading('Hero', text='Hero')
+    table1.heading('Average Synergy', text='Average Synergy')
+
+    for row in synergy_table_team1:
+        table1.insert('', 'end', values=row)
+
+    # Создание таблицы для команды 2
+    table2 = ttk.Treeview(root, columns=('Hero', 'Average Synergy'), show='headings')
+    table2.heading('Hero', text='Hero')
+    table2.heading('Average Synergy', text='Average Synergy')
+
+    for row in synergy_table_team2:
+        table2.insert('', 'end', values=row)
+
+    # Отображение таблиц
+    table1.grid(row=7, column=0, padx=10, pady=10)  # Измените номера строк и столбцов
+    # в соответствии с вашим макетом
+    table2.grid(row=7, column=4, padx=10, pady=10)  # Измените номера строк и столбцов в соответствии с вашим макетом
+
+
 def create_comparison_table(team1_heroes, team2_heroes):
     comparison_table = []
 
@@ -208,6 +274,9 @@ team2_hero_entries = []
 for i in range(5):
     hero_entry = create_hero_entry_row(5, i)
     team2_hero_entries.append(hero_entry)
+
+calculate_button = ttk.Button(root, text="Показать синергию", command=show_synergy_table)
+calculate_button.grid(row=6, column=0, padx=10, pady=10, columnspan=5)
 
 compare_button = ttk.Button(root, text="Сравнить героев", command=show_comparison_table)
 compare_button.grid(row=4, column=0, padx=10, pady=10, columnspan=5)
