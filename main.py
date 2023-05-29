@@ -246,7 +246,7 @@ def show_comparison_table():
     column_sums = [round(sum(row[i] for row in comparison_table), 2) for i in range(1, len(team2_heroes) + 1)]
 
     # Insert the rounded total sum as the last entry in the "Total Team 1" column and the rounded column sums for
-    total_row = ["Total team 2"] + column_sums + [round(total_sum, 2)]
+    total_row = ["Total team 2"] + [str(column_sum) for column_sum in column_sums] + [str(round(total_sum, 2))]
     tree.insert("", END, values=total_row)
 
     # Use grid to add the Treeview to the parent widget
