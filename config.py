@@ -1,8 +1,9 @@
-import requests
-from bs4 import BeautifulSoup
 from functools import lru_cache
 
-period = ['week', 'month', '3month','6month', 'year' , 'patch_7.33']
+import requests
+from bs4 import BeautifulSoup
+
+period = ['week', 'month', '3month', '6month', 'year', 'patch_7.33']
 
 all_hero_names = [
     "abaddon", "alchemist", "ancient-apparition", "anti-mage", "arc-warden", "axe", "bane", "batrider", "beastmaster",
@@ -33,7 +34,8 @@ def fetch_counters(hero_name, period):
     url = f"https://www.dotabuff.com/heroes/{normalized_hero_name}/counters?date={period}"
 
     headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/58.0.3029.110 Safari/537.36",
     }
 
     response = requests.get(url, headers=headers)
@@ -51,10 +53,10 @@ def fetch_counters(hero_name, period):
             Matches_Played = cells[4].text.strip()
 
             counter_data.append({
-            "hero_name": normalize_hero_name(hero_name),
-            "disadvantage": disadvantage,
-            "win_rate": win_rate,
-            "Matches_Played" : Matches_Played,
+                "hero_name": normalize_hero_name(hero_name),
+                "disadvantage": disadvantage,
+                "win_rate": win_rate,
+                "Matches_Played": Matches_Played,
             })
         print(counter_data)
         return counter_data
