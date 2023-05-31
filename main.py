@@ -3,7 +3,7 @@ from tkinter import ttk
 
 from ConfigStratzApi import hero_id
 from StratzAPI import fetch_synergy_data
-from config import all_hero_names, fetch_counters, period, normalize_hero_name
+from config import all_hero_names, fetch_counters, period, normalize_hero_name, load_or_fetch_economy_data
 
 hero_names = all_hero_names
 period = period
@@ -253,6 +253,53 @@ def show_comparison_table():
     tree.grid(row=3, column=0, columnspan=5, sticky='nsew')
 
 
+def calculate_team_economy(event, team_hero_entries, period, team_number):
+    economy_data = load_or_fetch_economy_data(period)
+
+    team_heroes = [entry.get().lower() for entry in team_hero_entries if entry.get().strip()]
+
+    total_gold_per_minute = 0
+    total_experience_per_minute = 0
+    for hero in team_heroes:
+        # Find hero in economy data
+        for data in economy_data:
+            if data['hero_name'] == hero:
+                total_gold_per_minute += float(data['gold_per_minute'])
+                total_experience_per_minute += float(data['experience_per_minute'])
+                break
+
+    # Calculate average
+    average_gold_per_minute = total_gold_per_minute / len(team_heroes)
+    average_experience_per_minute = total_experience_per_minute / len(team_heroes)
+
+    # Display the results in a table
+    display_results(average_gold_per_minute, average_experience_per_minute, team_number)
+
+table = None
+def display_results(avg_gpm, avg_xpm, team_number):
+    global table
+
+    # Если таблица еще не создана, создайте ее и добавьте строки
+    if table is None:
+        table = ttk.Treeview(root, columns=('Team', 'Avg GPM', 'Avg XPM'), show='headings')
+        table.heading('Team', text='Team')
+        table.heading('Avg GPM', text='Avg GPM')
+        table.heading('Avg XPM', text='Avg XPM')
+
+        table.insert('', 'end', values=('Team 1', 0, 0))
+        table.insert('', 'end', values=('Team 2', 0, 0))
+
+        table.grid(row=4, column=0, padx=10, pady=10, columnspan=5)
+
+    # Обновление результатов в таблице
+    if team_number == 1:
+        table.set(table.get_children()[0], 'Avg GPM', avg_gpm)
+        table.set(table.get_children()[0], 'Avg XPM', avg_xpm)
+    else:
+        table.set(table.get_children()[1], 'Avg GPM', avg_gpm)
+        table.set(table.get_children()[1], 'Avg XPM', avg_xpm)
+
+
 root = Tk()
 root.title("Dota 2 Counter Picker")
 root.resizable(width=False, height=False)
@@ -280,6 +327,11 @@ calculate_button.grid(row=6, column=0, padx=10, pady=10, columnspan=5)
 
 compare_button = ttk.Button(root, text="Сравнить героев", command=show_comparison_table)
 compare_button.grid(row=4, column=0, padx=10, pady=10, columnspan=5)
+
+calculate_button = ttk.Button(root, text="calculate_economy")
+calculate_button.grid(row=2, column=0, padx=10, pady=10, columnspan=10)
+calculate_button.bind('<Button-1>', lambda event: calculate_team_economy(event, team1_hero_entries, period, 1))
+calculate_button.bind('<Button-3>', lambda event: calculate_team_economy(event, team2_hero_entries, period, 2))
 
 # Изменить номер строки для кнопки "Показать контрпики"
 calculate_button = ttk.Button(root, text="Показать контрпики команды 1",
