@@ -271,6 +271,7 @@ def calculate_team_economy(event, team_hero_entries, period, team_number):
     # Calculate average
     average_gold_per_minute = total_gold_per_minute / len(team_heroes)
     average_experience_per_minute = total_experience_per_minute / len(team_heroes)
+    print(average_gold_per_minute, average_experience_per_minute)
 
     # Display the results in a table
     display_results(average_gold_per_minute, average_experience_per_minute, team_number)
@@ -326,10 +327,10 @@ calculate_button = ttk.Button(root, text="Показать синергию", co
 calculate_button.grid(row=6, column=0, padx=10, pady=10, columnspan=5)
 
 compare_button = ttk.Button(root, text="Сравнить героев", command=show_comparison_table)
-compare_button.grid(row=4, column=0, padx=10, pady=10, columnspan=5)
+compare_button.grid(row=7, column=0, padx=10, pady=10, columnspan=5)
 
 calculate_button = ttk.Button(root, text="calculate_economy")
-calculate_button.grid(row=2, column=0, padx=10, pady=10, columnspan=10)
+calculate_button.grid(row=8, column=0, padx=10, pady=10, columnspan=10)
 calculate_button.bind('<Button-1>', lambda event: calculate_team_economy(event, team1_hero_entries, period, 1))
 calculate_button.bind('<Button-3>', lambda event: calculate_team_economy(event, team2_hero_entries, period, 2))
 
