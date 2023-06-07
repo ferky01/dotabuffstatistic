@@ -131,7 +131,7 @@ def fetch_synergy_data(hero_name):
           stompWinCount
           stompLossCount
         }}
-        laneOutcomeIsWithTruePosition5: laneOutcome(heroId: {hero_id_value}, isWith: true, positionIds: POSITION_5) {{
+        laneOutcomeIsWithFalsePosition5: laneOutcome(heroId: {hero_id_value}, isWith: false, positionIds: POSITION_5) {{
           heroId1
           heroId2
           matchCount
