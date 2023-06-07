@@ -253,7 +253,7 @@ def show_comparison_table():
     tree.grid(row=3, column=0, columnspan=5, sticky='nsew')
 
 
-def calculate_team_economy(event, team_hero_entries, period, team_number):
+def calculate_team_economy(team_hero_entries, period, team_number):
     economy_data = load_or_fetch_economy_data(period)
 
     team_heroes = [entry.get().lower() for entry in team_hero_entries if entry.get().strip()]
@@ -261,7 +261,6 @@ def calculate_team_economy(event, team_hero_entries, period, team_number):
     total_gold_per_minute = 0
     total_experience_per_minute = 0
     for hero in team_heroes:
-        # Find hero in economy data
         for data in economy_data:
             if data['hero_name'] == hero:
                 total_gold_per_minute += float(data['gold_per_minute'])
@@ -271,18 +270,20 @@ def calculate_team_economy(event, team_hero_entries, period, team_number):
     # Calculate average
     average_gold_per_minute = total_gold_per_minute / len(team_heroes)
     average_experience_per_minute = total_experience_per_minute / len(team_heroes)
-    print(average_gold_per_minute, average_experience_per_minute)
 
     # Display the results in a table
     display_results(average_gold_per_minute, average_experience_per_minute, team_number)
 
+
 table = None
+
+
 def display_results(avg_gpm, avg_xpm, team_number):
     global table
 
     # Если таблица еще не создана, создайте ее и добавьте строки
     if table is None:
-        table = ttk.Treeview(root, columns=('Team', 'Avg GPM', 'Avg XPM'), show='headings')
+        table = ttk.Treeview(root, columns=('Team', 'Avg GPM', 'Avg XPM'), show='headings', height=3)
         table.heading('Team', text='Team')
         table.heading('Avg GPM', text='Avg GPM')
         table.heading('Avg XPM', text='Avg XPM')
@@ -299,6 +300,67 @@ def display_results(avg_gpm, avg_xpm, team_number):
     else:
         table.set(table.get_children()[1], 'Avg GPM', avg_gpm)
         table.set(table.get_children()[1], 'Avg XPM', avg_xpm)
+
+
+def calculate_matchup(team1, team2):
+    matchup_table = []
+    position_data_map = {
+        0: 'laneOutcomeIsWithFalsePosition1',
+        1: 'laneOutcomeIsWithFalsePosition2',
+        2: 'laneOutcomeIsWithFalsePosition3',
+        3: 'laneOutcomeIsWithFalsePosition4',
+        4: 'laneOutcomeIsWithFalsePosition5'
+    }
+
+    # Сопоставление позиций героев в командах
+    matchup_positions = [
+        ([0, 4], [2, 3]),
+        ([1], [1]),
+        ([2, 3], [0, 4])
+    ]
+
+    # Названия дорог
+    lanes = ["Bot lane", "Mid lane", "Top lane"]
+
+    for idx, positions_set in enumerate(matchup_positions):
+        total_match_count = 0
+        total_draw_count = 0
+        total_win_count = 0
+        total_loss_count = 0
+        total_stomp_win_count = 0
+        total_stomp_loss_count = 0
+        heroes_pairs = [(team1[i], team2[j]) for i in positions_set[0] for j in positions_set[1]]
+
+        team1_heroes = ", ".join(team1[i] for i in positions_set[0])
+        team2_heroes = ", ".join(team2[i] for i in positions_set[1])
+
+        lane_msg = "{}: {} vs {}".format(lanes[idx], team1_heroes, team2_heroes)
+
+        for hero1, hero2 in heroes_pairs:
+            hero1_data = fetch_synergy_data(hero1)
+            hero1_name = normalize_hero_name(hero1)
+            hero2_id = hero_id[hero2]
+
+            if position_data_map[team1.index(hero1)] in hero1_data:
+                for outcome_info in hero1_data[position_data_map[team1.index(hero1)]]:
+                    if outcome_info['heroId2'] == hero2_id:
+                        total_match_count += outcome_info['matchCount']
+                        total_draw_count += outcome_info['drawCount']
+                        total_win_count += outcome_info['winCount']
+                        total_loss_count += outcome_info['lossCount']
+                        total_stomp_win_count += outcome_info['stompWinCount']
+                        total_stomp_loss_count += outcome_info['stompLossCount']
+
+        win_probability = (total_win_count / total_match_count) * 100
+        loss_probability = (total_loss_count / total_match_count) * 100
+        draw_probability = (total_draw_count / total_match_count) * 100
+        stomp_win_probability = (total_stomp_win_count / total_match_count) * 100
+        stomp_loss_probability = (total_stomp_loss_count / total_match_count) * 100
+
+        matchup_table.append(
+            [lane_msg, total_match_count, win_probability, loss_probability, draw_probability, stomp_win_probability,
+             stomp_loss_probability])
+    return matchup_table
 
 
 root = Tk()
@@ -323,6 +385,24 @@ for i in range(5):
     hero_entry = create_hero_entry_row(5, i)
     team2_hero_entries.append(hero_entry)
 
+
+def get_team_from_entries(entries):
+    return [entry.get() for entry in entries]
+
+
+def print_matchup_table(event, team1_entries, team2_entries):
+    team1 = get_team_from_entries(team1_entries)
+    team2 = get_team_from_entries(team2_entries)
+    matchup_table = calculate_matchup(team1, team2)
+    for row in matchup_table:
+        print(row)
+
+
+# Добавьте эту строку в вашу функцию setup GUI, после создания всех виджетов ввода.
+matchup_button = ttk.Button(root, text="Calculate Matchup")
+matchup_button.grid(row=9, column=0, padx=10, pady=10, columnspan=10)
+matchup_button.bind('<Button-1>', lambda event: print_matchup_table(event, team1_hero_entries, team2_hero_entries))
+
 calculate_button = ttk.Button(root, text="Показать синергию", command=show_synergy_table)
 calculate_button.grid(row=6, column=0, padx=10, pady=10, columnspan=5)
 
@@ -331,8 +411,10 @@ compare_button.grid(row=7, column=0, padx=10, pady=10, columnspan=5)
 
 calculate_button = ttk.Button(root, text="calculate_economy")
 calculate_button.grid(row=8, column=0, padx=10, pady=10, columnspan=10)
-calculate_button.bind('<Button-1>', lambda event: calculate_team_economy(event, team1_hero_entries, period, 1))
-calculate_button.bind('<Button-3>', lambda event: calculate_team_economy(event, team2_hero_entries, period, 2))
+calculate_button.bind('<Button-1>',
+                      lambda event: [calculate_team_economy(team_hero_entries, period, team_number)
+                                     for team_hero_entries, team_number in
+                                     [(team1_hero_entries, 1), (team2_hero_entries, 2)]])
 
 # Изменить номер строки для кнопки "Показать контрпики"
 calculate_button = ttk.Button(root, text="Показать контрпики команды 1",
